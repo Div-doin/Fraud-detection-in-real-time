@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Fraud Alerts Dashboard</title>
+  <style>
+    :root {
+      --bg: #020617;
+      --bg-elevated: #020617;
+      --card-bg: rgba(15, 23, 42, 0.9);
+      --card-border: rgba(148, 163, 184, 0.2);
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.2);
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --danger: #f97373;
+      --danger-soft: rgba(248, 113, 113, 0.16);
+      --warn: #facc15;
+      --success: #22c55e;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(56, 189, 248, 0.1), transparent 60%),
+        radial-gradient(circle at bottom, rgba(248, 113, 113, 0.12), transparent 55%),
+        var(--bg);
+      margin: 0;
+      padding: 0;
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top nav / header */
+    header {
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(148, 163, 184, 0.3);
+      padding: 10px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .nav-bar {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .nav-logo {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 20%, #38bdf8, #0ea5e9 40%, #22c55e 100%);
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+      font-size: 16px;
+      color: #0b1120;
+      font-weight: 900;
+    }
+    .nav-title {
+      display: flex;
+      flex-direction: column;
+    }
+    .nav-title h1 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: 0.03em;
+    }
+    .nav-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      font-size: 13px;
+    }
+    .nav-link {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-muted);
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.18s ease-out;
+    }
+    .nav-link:hover {
+      color: var(--text-main);
+      border-color: rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.85);
+    }
+    .nav-link.active {
+      color: #0f172a;
+      background: var(--accent);
+      border-color: transparent;
+      box-shadow: 0 0 18px rgba(56, 189, 248, 0.4);
+    }
+
+    .container {
+      flex: 1;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .content {
+      width: 100%;
+      max-width: 1200px;
+    }
+
+    /* Stats cards */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+    .card {
+      position: relative;
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 12px 14px;
+      border: 1px solid var(--card-border);
+      box-shadow:
+        0 18px 45px rgba(15, 23, 42, 0.85),
+        0 0 0 0 rgba(56, 189, 248, 0.0);
+      overflow: hidden;
+      transition: all 0.2s ease-out;
+    }
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.25), transparent 55%);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.22s ease-out;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow:
+        0 22px 55px rgba(15, 23, 42, 0.95),
+        0 0 25px rgba(56, 189, 248, 0.18);
+    }
+    .card:hover::before {
+      opacity: 1;
+    }
+    .card-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .card-value {
+      font-size: 20px;
+      font-weight: 700;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+    .card-value span.sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .card-icon {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      font-size: 16px;
+      opacity: 0.8;
+    }
+
+    .card--alerts .card-icon { content: " "; }
+    .card--alerts .card-icon::before { content: "📡"; }
+    .card--high .card-icon::before { content: "🔥"; }
+    .card--updated .card-icon::before { content: "⏱"; }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .controls button {
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(56, 189, 248, 0.6);
+      cursor: pointer;
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--accent);
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease-out;
+    }
+    .controls button:hover {
+      background: var(--accent);
+      color: #0b1120;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.45);
+    }
+    .controls label {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    select {
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text-main);
+      font-size: 12px;
+      outline: none;
+    }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--card-bg);
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid var(--card-border);
+      box-shadow:
+        0 18px 45px rgba(15, 23, 42, 0.9),
+        0 0 0 0 rgba(56, 189, 248, 0.0);
+    }
+    thead {
+      background: radial-gradient(circle at top, rgba(15, 23, 42, 1), rgba(15, 23, 42, 0.9));
+    }
+    th, td {
+      padding: 9px 10px;
+      border-bottom: 1px solid rgba(30, 64, 175, 0.5);
+      font-size: 13px;
+      text-align: left;
+      color: var(--text-main);
+    }
+    th {
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-size: 11px;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tbody tr {
+      transition: background 0.15s ease-out, transform 0.15s ease-out, box-shadow 0.15s ease-out;
+    }
+    tbody tr:hover {
+      background: rgba(15, 23, 42, 0.9);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.9);
+    }
+
+    /* Risk row emphasis */
+    .row-high {
+      box-shadow: inset 2px 0 0 var(--warn);
+      background: rgba(88, 28, 135, 0.35);
+    }
+    .row-critical {
+      box-shadow: inset 2px 0 0 var(--danger);
+      background: var(--danger-soft);
+    }
+    .row-low {
+      box-shadow: inset 2px 0 0 var(--success);
+    }
+
+    .risk-high {
+      color: var(--danger);
+      font-weight: 600;
+    }
+    .risk-medium {
+      color: var(--warn);
+      font-weight: 600;
+    }
+    .risk-low {
+      color: var(--success);
+      font-weight: 600;
+    }
+
+    .badge {
+      padding: 3px 8px;
+      border-radius: 999px;
+      color: white;
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .badge-low { background-color: #15803d; }
+    .badge-medium { background-color: #ca8a04; }
+    .badge-high { background-color: #ea580c; }
+    .badge-critical { background-color: #b91c1c; }
+
+    .badge-low::before { content: "🟢"; }
+    .badge-medium::before { content: "🟡"; }
+    .badge-high::before { content: "🟠"; }
+    .badge-critical::before { content: "🔴"; }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-size: 11px;
+      background: rgba(248, 113, 113, 0.08);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.5);
+    }
+    .tag::before {
+      content: "⚠";
+      font-size: 11px;
+    }
+
+    .no-data {
+      text-align: center;
+      padding: 22px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    footer {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      padding: 10px 0 16px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="nav-bar">
+      <div class="nav-left">
+        <div class="nav-logo">F</div>
+        <div class="nav-title">
+          <h1>Fraud Alerts Dashboard</h1>
+          <div class="nav-subtitle">Real-time monitoring · Local system</div>
+        </div>
+      </div>
+      <nav class="nav-links">
+        <!-- Change hrefs if your other pages have different paths -->
+        <a class="nav-link" href="/static/index.html">Home</a>
+        <a class="nav-link" href="/static/predict.html">Predict</a>
+        <a class="nav-link active" href="/static/alerts.html">Alerts</a>
+        <a class="nav-link" href="/static/analytics.html">Analytics</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="content">
+      <div class="stats">
+        <div class="card card--alerts">
+          <div class="card-icon"></div>
+          <div class="card-title">Total Alerts (current view)</div>
+          <div class="card-value">
+            <span id="total-alerts">0</span>
+            <span class="sub">alerts</span>
+          </div>
+        </div>
+        <div class="card card--high">
+          <div class="card-icon"></div>
+          <div class="card-title">High / Critical Risk</div>
+          <div class="card-value">
+            <span id="high-risk-count">0</span>
+            <span class="sub">priority</span>
+          </div>
+        </div>
+        <div class="card card--updated">
+          <div class="card-icon"></div>
+          <div class="card-title">Last Updated</div>
+          <div class="card-value">
+            <span id="last-updated">-</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="refresh-btn">
+          🔄 Refresh Now
+        </button>
+
+        <label>
+          Auto-refresh:
+          <select id="refresh-interval">
+            <option value="0">Off</option>
+            <option value="5000" selected>Every 5 seconds</option>
+            <option value="10000">Every 10 seconds</option>
+            <option value="30000">Every 30 seconds</option>
+          </select>
+        </label>
+
+        <label>
+          Show last:
+          <select id="limit-select">
+            <option value="20">20</option>
+            <option value="50" selected>50</option>
+            <option value="100">100</option>
+          </select>
+        </label>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Transaction ID</th>
+            <th>Customer ID</th>
+            <th>Amount</th>
+            <th>Score</th>
+            <th>Risk</th>
+            <th>Prediction</th>
+          </tr>
+        </thead>
+        <tbody id="alerts-table-body">
+          <tr>
+            <td colspan="7" class="no-data">Loading alerts...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>
+    Fraud Detection System (Local) · Alerts Overview
+  </footer>
+
+  <script>
+    const API_BASE = "http://127.0.0.1:8000";
+
+    const tableBody = document.getElementById("alerts-table-body");
+    const totalAlertsEl = document.getElementById("total-alerts");
+    const highRiskCountEl = document.getElementById("high-risk-count");
+    const lastUpdatedEl = document.getElementById("last-updated");
+    const refreshBtn = document.getElementById("refresh-btn");
+    const refreshIntervalSelect = document.getElementById("refresh-interval");
+    const limitSelect = document.getElementById("limit-select");
+
+    let refreshTimer = null;
+
+    async function fetchAlerts() {
+      const limit = limitSelect.value || 50;
+      try {
+        const res = await fetch(`${API_BASE}/alerts?limit=${limit}`);
+        const data = await res.json();
+        renderAlerts(data);
+      } catch (err) {
+        console.error("Error fetching alerts:", err);
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="7" class="no-data">Error loading alerts. Check console.</td>
+          </tr>
+        `;
+      }
+    }
+
+    function riskBadge(level) {
+      if (!level) return "-";
+      switch (level.toUpperCase()) {
+        case "LOW": return `<span class="badge badge-low">Low</span>`;
+        case "MEDIUM": return `<span class="badge badge-medium">Medium</span>`;
+        case "HIGH": return `<span class="badge badge-high">High</span>`;
+        case "CRITICAL": return `<span class="badge badge-critical">Critical</span>`;
+        default: return level;
+      }
+    }
+
+    function renderAlerts(alerts) {
+      if (!alerts || alerts.length === 0) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="7" class="no-data">No alerts found.</td>
+          </tr>
+        `;
+        totalAlertsEl.textContent = "0";
+        highRiskCountEl.textContent = "0";
+        lastUpdatedEl.textContent = new Date().toLocaleTimeString();
+        return;
+      }
+
+      let rows = "";
+      let highRiskCount = 0;
+
+      alerts.forEach(alert => {
+        const ts = alert.timestamp
+          ? new Date(alert.timestamp).toLocaleString()
+          : "-";
+
+        const amount = alert.amount !== undefined && alert.amount !== null
+          ? Number(alert.amount).toFixed(2)
+          : "-";
+
+        const score = alert.score !== undefined && alert.score !== null
+          ? (Number(alert.score) * 100).toFixed(1) + "%"
+          : "-";
+
+        const riskRaw = (alert.risk_level || "Unknown").toUpperCase();
+
+        let rowClass = "";
+        if (riskRaw === "HIGH") {
+          rowClass = "row-high";
+          highRiskCount++;
+        } else if (riskRaw === "CRITICAL") {
+          rowClass = "row-critical";
+          highRiskCount++;
+        } else if (riskRaw === "LOW") {
+          rowClass = "row-low";
+        }
+
+        const prediction = (alert.prediction || "").toString().toLowerCase();
+
+        const riskHtml = riskBadge(alert.risk_level || "Unknown");
+
+        rows += `
+          <tr class="${rowClass}">
+            <td>${ts}</td>
+            <td>${alert.transaction_id || "-"}</td>
+            <td>${alert.customer_id || "-"}</td>
+            <td>${amount}</td>
+            <td>${score}</td>
+            <td>${riskHtml}</td>
+            <td>
+              ${prediction === "fraud" || prediction === "1"
+                ? '<span class="tag">Fraud</span>'
+                : prediction === "0"
+                  ? "Normal"
+                  : (alert.prediction || "-")}
+            </td>
+          </tr>
+        `;
+      });
+
+      tableBody.innerHTML = rows;
+      totalAlertsEl.textContent = alerts.length.toString();
+      highRiskCountEl.textContent = highRiskCount.toString();
+      lastUpdatedEl.textContent = new Date().toLocaleTimeString();
+    }
+
+    function setupAutoRefresh() {
+      if (refreshTimer) {
+        clearInterval(refreshTimer);
+        refreshTimer = null;
+      }
+      const interval = Number(refreshIntervalSelect.value);
+      if (interval > 0) {
+        refreshTimer = setInterval(fetchAlerts, interval);
+      }
+    }
+
+    // Event listeners
+    refreshBtn.addEventListener("click", fetchAlerts);
+    refreshIntervalSelect.addEventListener("change", () => {
+      setupAutoRefresh();
+      fetchAlerts();
+    });
+    limitSelect.addEventListener("change", fetchAlerts);
+
+    // Initial load
+    fetchAlerts();
+    setupAutoRefresh();
+  </script>
+</body>
+</html>

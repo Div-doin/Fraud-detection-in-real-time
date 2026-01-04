@@ -1,0 +1,30 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Jupyter notebooks
+.ipynb_checkpoints/
+
+# ML training artifacts
+catboost_info/
+
+# Logs
+logs/
+
+# Virtual environments
+.env
+venv/
+.venv/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Raw & processed data (keep folders, not files)
+cloud_fraud_detection/data/raw/*
+cloud_fraud_detection/data/processed/*
+
+# Model files (only upload final ones if needed)
+*.h5
+*.pkl
+*.joblib

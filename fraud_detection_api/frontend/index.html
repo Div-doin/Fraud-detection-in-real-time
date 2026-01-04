@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fraud Detection - Enhanced</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        input {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .test-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .test-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .test-btn.fraud {
+            background: #ff4757;
+            color: white;
+        }
+
+        .test-btn.fraud:hover {
+            background: #ee2b3a;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 71, 87, 0.3);
+        }
+
+        .test-btn.safe {
+            background: #26de81;
+            color: white;
+        }
+
+        .test-btn.safe:hover {
+            background: #20c46d;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(38, 222, 129, 0.3);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .result {
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result.fraud {
+            background: #ffe5e5;
+            border: 2px solid #ff4757;
+        }
+
+        .result.safe {
+            background: #e5ffe5;
+            border: 2px solid #26de81;
+        }
+
+        .result h3 {
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+
+        .result.fraud h3 {
+            color: #ff4757;
+        }
+
+        .result.safe h3 {
+            color: #26de81;
+        }
+
+        .result-details {
+            font-size: 14px;
+            color: #555;
+            line-height: 1.8;
+        }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-weight: 600;
+            display: none;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .test-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛡️ Fraud Detection System</h1>
+        <p class="subtitle">Fill in transaction details or use quick test buttons</p>
+
+        <div class="test-buttons">
+            <button class="test-btn fraud" onclick="fillFraudData()">🚨 Test FRAUD Transaction</button>
+            <button class="test-btn safe" onclick="fillSafeData()">✅ Test SAFE Transaction</button>
+        </div>
+
+        <form id="fraudForm">
+            <div class="form-grid">
+                <!-- Financial Info -->
+                <div class="form-group">
+                    <label>💰 Income ($)</label>
+                    <input type="number" id="income" required>
+                </div>
+                <div class="form-group">
+                    <label>📊 Credit Score</label>
+                    <input type="number" id="credit_risk_score" required>
+                </div>
+                <div class="form-group">
+                    <label>💳 Proposed Credit Limit ($)</label>
+                    <input type="number" id="proposed_credit_limit" required>
+                </div>
+                <div class="form-group">
+                    <label>💵 Intended Balance ($)</label>
+                    <input type="number" id="intended_balcon_amount" required>
+                </div>
+
+                <!-- Personal Info -->
+                <div class="form-group">
+                    <label>🎂 Age</label>
+                    <input type="number" id="customer_age" required>
+                </div>
+                <div class="form-group">
+                    <label>👤 Employment Status (0=No, 1=Yes)</label>
+                    <input type="number" id="employment_status" min="0" max="1" required>
+                </div>
+                
+                <!-- TOP 3 MOST IMPORTANT FEATURES! -->
+                <div class="form-group">
+                    <label>🏠 Housing Status (0=Unstable, 1=Stable) ⭐ #1</label>
+                    <input type="number" id="housing_status" min="0" max="1" required>
+                </div>
+                <div class="form-group">
+                    <label>💻 Device OS (0=Normal, 3=Suspicious) ⭐ #3</label>
+                    <input type="number" id="device_os" min="0" max="3" required>
+                </div>
+                <div class="form-group">
+                    <label>💳 Has Other Cards (0=No, 1=Yes) ⭐ #4</label>
+                    <input type="number" id="has_other_cards" min="0" max="1" required>
+                </div>
+
+                <!-- Velocity Metrics (CRITICAL FOR FRAUD) -->
+                <div class="form-group">
+                    <label>⚡ Transactions (6 hours)</label>
+                    <input type="number" id="velocity_6h" required>
+                </div>
+                <div class="form-group">
+                    <label>⚡ Transactions (24 hours)</label>
+                    <input type="number" id="velocity_24h" required>
+                </div>
+                <div class="form-group">
+                    <label>⚡ Transactions (4 weeks)</label>
+                    <input type="number" id="velocity_4w" required>
+                </div>
+
+                <!-- Device & Identity (CRITICAL FOR FRAUD) -->
+                <div class="form-group">
+                    <label>🚨 Device Fraud Count</label>
+                    <input type="number" id="device_fraud_count" required>
+                </div>
+                <div class="form-group">
+                    <label>📧 Device Emails (8 weeks)</label>
+                    <input type="number" id="device_distinct_emails_8w" required>
+                </div>
+                <div class="form-group">
+                    <label>🎭 DOB Distinct Emails (4 weeks)</label>
+                    <input type="number" id="date_of_birth_distinct_emails_4w" required>
+                </div>
+
+                <!-- Stability Metrics -->
+                <div class="form-group">
+                    <label>📍 Current Address (months)</label>
+                    <input type="number" id="current_address_months_count" required>
+                </div>
+                <div class="form-group">
+                    <label>🏦 Bank Months Count</label>
+                    <input type="number" id="bank_months_count" required>
+                </div>
+                <div class="form-group">
+                    <label>🏢 Bank Branch Count (8 weeks)</label>
+                    <input type="number" id="bank_branch_count_8w" required>
+                </div>
+
+                <!-- Contact Validation -->
+                <div class="form-group">
+                    <label>📞 Phone Home Valid (0=No, 1=Yes)</label>
+                    <input type="number" id="phone_home_valid" min="0" max="1" required>
+                </div>
+                <div class="form-group">
+                    <label>📱 Phone Mobile Valid (0=No, 1=Yes)</label>
+                    <input type="number" id="phone_mobile_valid" min="0" max="1" required>
+                </div>
+
+                <!-- Other Metrics -->
+                <div class="form-group">
+                    <label>📧 Name-Email Similarity (0-1)</label>
+                    <input type="number" step="0.01" id="name_email_similarity" required>
+                </div>
+                <div class="form-group">
+                    <label>🌍 Foreign Request (0=No, 1=Yes)</label>
+                    <input type="number" id="foreign_request" min="0" max="1" required>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn">🔍 Check Fraud Risk</button>
+        </form>
+
+        <div class="loading" id="loading">Analyzing transaction...</div>
+
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        function fillFraudData() {
+            // HIGH FRAUD RISK - Based on actual model feature importance!
+            document.getElementById('income').value = 15000;
+            document.getElementById('credit_risk_score').value = 350;
+            document.getElementById('proposed_credit_limit').value = 20000;
+            document.getElementById('intended_balcon_amount').value = 25000;
+            document.getElementById('customer_age').value = 22;
+            
+            // ⚠️ TOP FRAUD INDICATORS (what model actually learned):
+            document.getElementById('housing_status').value = 0;  // Unstable housing (#1 most important!)
+            document.getElementById('employment_status').value = 0;  // Unemployed
+            document.getElementById('current_address_months_count').value = 0;  // Just moved (#2 most important!)
+            document.getElementById('device_os').value = 3;  // Suspicious device (#3 most important!)
+            document.getElementById('has_other_cards').value = 0;  // No credit history (#4 most important!)
+            document.getElementById('phone_home_valid').value = 0;  // No valid phone (#5 most important!)
+            
+            // Moderate velocity (model doesn't care much about these)
+            document.getElementById('velocity_6h').value = 3;
+            document.getElementById('velocity_24h').value = 8;
+            document.getElementById('velocity_4w').value = 25;
+            
+            // Other suspicious indicators
+            document.getElementById('device_fraud_count').value = 0;  // Model doesn't use this!
+            document.getElementById('device_distinct_emails_8w').value = 5;
+            document.getElementById('date_of_birth_distinct_emails_4w').value = 5;
+            document.getElementById('bank_months_count').value = 1;
+            document.getElementById('bank_branch_count_8w').value = 10;
+            document.getElementById('phone_mobile_valid').value = 0;
+            document.getElementById('name_email_similarity').value = 0.2;
+            document.getElementById('foreign_request').value = 1;
+        }
+
+        function fillSafeData() {
+            // LOW FRAUD RISK - Based on actual model feature importance!
+            document.getElementById('income').value = 75000;
+            document.getElementById('credit_risk_score').value = 750;
+            document.getElementById('proposed_credit_limit').value = 8000;
+            document.getElementById('intended_balcon_amount').value = 5000;
+            document.getElementById('customer_age').value = 35;
+            
+            // ⚠️ TOP FRAUD PROTECTIONS (what model actually learned):
+            document.getElementById('housing_status').value = 1;  // Stable housing (#1!)
+            document.getElementById('employment_status').value = 1;  // Employed
+            document.getElementById('current_address_months_count').value = 48;  // Long-term address (#2!)
+            document.getElementById('device_os').value = 0;  // Normal device (#3!)
+            document.getElementById('has_other_cards').value = 1;  // Has credit cards (#4!)
+            document.getElementById('phone_home_valid').value = 1;  // Valid phone (#5!)
+            
+            // LOW velocity = SAFE
+            document.getElementById('velocity_6h').value = 0;
+            document.getElementById('velocity_24h').value = 1;
+            document.getElementById('velocity_4w').value = 3;
+            
+            // Clean device
+            document.getElementById('device_fraud_count').value = 0;
+            document.getElementById('device_distinct_emails_8w').value = 1;
+            document.getElementById('date_of_birth_distinct_emails_4w').value = 1;
+            
+            // Stable
+            document.getElementById('current_address_months_count').value = 24;
+            document.getElementById('bank_months_count').value = 60;
+            document.getElementById('bank_branch_count_8w').value = 1;
+            document.getElementById('phone_home_valid').value = 1;
+            document.getElementById('phone_mobile_valid').value = 1;
+            document.getElementById('name_email_similarity').value = 0.9;
+            document.getElementById('foreign_request').value = 0;
+        }
+
+        document.getElementById('fraudForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            
+            loading.classList.add('show');
+            result.classList.remove('show');
+
+            // Build payload with all 31 features (filling missing with defaults)
+            const payload = {
+                income: parseFloat(document.getElementById('income').value),
+                name_email_similarity: parseFloat(document.getElementById('name_email_similarity').value),
+                prev_address_months_count: 12, // default
+                current_address_months_count: parseFloat(document.getElementById('current_address_months_count').value),
+                customer_age: parseFloat(document.getElementById('customer_age').value),
+                days_since_request: 3, // default
+                intended_balcon_amount: parseFloat(document.getElementById('intended_balcon_amount').value),
+                payment_type: 0, // default
+                zip_count_4w: 1, // default
+                velocity_6h: parseFloat(document.getElementById('velocity_6h').value),
+                velocity_24h: parseFloat(document.getElementById('velocity_24h').value),
+                velocity_4w: parseFloat(document.getElementById('velocity_4w').value),
+                bank_branch_count_8w: parseFloat(document.getElementById('bank_branch_count_8w').value),
+                date_of_birth_distinct_emails_4w: parseFloat(document.getElementById('date_of_birth_distinct_emails_4w').value),
+                employment_status: parseFloat(document.getElementById('employment_status').value),
+                credit_risk_score: parseFloat(document.getElementById('credit_risk_score').value),
+                email_is_free: 1, // default
+                housing_status: parseFloat(document.getElementById('housing_status').value),
+                phone_home_valid: parseFloat(document.getElementById('phone_home_valid').value),
+                phone_mobile_valid: parseFloat(document.getElementById('phone_mobile_valid').value),
+                bank_months_count: parseFloat(document.getElementById('bank_months_count').value),
+                has_other_cards: parseFloat(document.getElementById('has_other_cards').value),
+                proposed_credit_limit: parseFloat(document.getElementById('proposed_credit_limit').value),
+                foreign_request: parseFloat(document.getElementById('foreign_request').value),
+                source: 0, // default
+                session_length_in_minutes: 10, // default
+                device_os: parseFloat(document.getElementById('device_os').value),
+                keep_alive_session: 1, // default
+                device_distinct_emails_8w: parseFloat(document.getElementById('device_distinct_emails_8w').value),
+                device_fraud_count: parseFloat(document.getElementById('device_fraud_count').value),
+                month: 6 // default
+            };
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': 'test_api_key_12345'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                loading.classList.remove('show');
+                result.classList.add('show');
+
+                if (data.is_fraud) {
+                    result.className = 'result show fraud';
+                    result.innerHTML = `
+                        <h3>🚨 HIGH RISK - POTENTIAL FRAUD</h3>
+                        <div class="result-details">
+                            <strong>Risk Level:</strong> ${data.risk_level}<br>
+                            <strong>Fraud Probability:</strong> ${(data.fraud_probability * 100).toFixed(2)}%<br>
+                            <strong>Transaction ID:</strong> ${data.transaction_id}<br>
+                            <strong>Processing Time:</strong> ${data.processing_time_ms.toFixed(2)}ms
+                        </div>
+                    `;
+                } else {
+                    result.className = 'result show safe';
+                    result.innerHTML = `
+                        <h3>✅ Transaction Appears Safe</h3>
+                        <div class="result-details">
+                            <strong>Risk Level:</strong> ${data.risk_level}<br>
+                            <strong>Fraud Probability:</strong> ${(data.fraud_probability * 100).toFixed(2)}%<br>
+                            <strong>Transaction ID:</strong> ${data.transaction_id}<br>
+                            <strong>Processing Time:</strong> ${data.processing_time_ms.toFixed(2)}ms
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                loading.classList.remove('show');
+                result.className = 'result show fraud';
+                result.innerHTML = `
+                    <h3>❌ Error</h3>
+                    <div class="result-details">
+                        ${error.message}
+                    </div>
+                `;
+            }
+        });
+
+        // Fill safe data by default
+        fillSafeData();
+    </script>
+</body>
+</html>

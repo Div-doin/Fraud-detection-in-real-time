@@ -1,0 +1,11 @@
+pandas
+numpy
+scikit-learn
+xgboost
+matplotlib
+seaborn
+faker
+boto3
+awscli
+motor
+pymongo
