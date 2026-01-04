@@ -64,6 +64,64 @@ The system includes:
 
 \## 🏗️ Project Structure
 
+Requirements
+
+
+---
+
+## ⚙️ Technologies Used
+
+- **Programming Language:** Python  
+- **Machine Learning:** Scikit-learn, CatBoost, XGBoost  
+- **Data Processing:** Pandas, NumPy  
+- **Visualization:** Matplotlib, Seaborn  
+- **API Framework:** Flask / FastAPI  
+- **Deployment:** AWS Elastic Beanstalk (ready)  
+- **Version Control:** Git & GitHub  
+
+---
+
+## 📊 Machine Learning Workflow
+
+1. Data collection & cleaning  
+2. Exploratory Data Analysis (EDA)  
+3. Feature engineering  
+4. Model training (multiple algorithms)  
+5. Model evaluation (Accuracy, Precision, Recall, F1, AUC)  
+6. Model selection & saving  
+7. API integration for real-time prediction  
+
+---
+
+## 🚀 How to Run the Project
+
+### 1️⃣ Clone the repository
+```bash
+git clone https://github.com/Div-doin/Fraud-detection-in-real-time.git
+cd Fraud-detection-in-real-time
+
+2️⃣ Create virtual environment
+
+python -m venv venv
+
+
+Activate:
+# Windows
+venv\Scripts\activate
+
+# Linux / Mac
+source venv/bin/activate
+
+
+3️⃣ Install dependencies
+
+pip install -r requirements.txt
+
+
+4️⃣ Run the API
+
+cd fraud_detection_api
+python app.py
 
 
 
